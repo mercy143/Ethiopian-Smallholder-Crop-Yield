@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: ethiopian-crop-yield-backend
+    env: python
+    plan: free
+    rootDir: app/backend
+    buildCommand: pip install -r ../../requirements.txt
+    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT --workers 2 --worker-class uvicorn.workers.UvicornWorker
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+
+  - type: web
+    name: ethiopian-crop-yield-frontend
+    env: node
+    plan: free
+    rootDir: app/frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start -- --hostname 0.0.0.0 --port $PORT
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://ethiopian-crop-yield-backend.onrender.com

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>D — Modeling & Evaluation Summary</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 32px;
+        color: #1f2937;
+        background: #f8fafc;
+      }
+      h1, h2, h3 {
+        color: #111827;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        max-width: 900px;
+        background: white;
+        margin: 16px 0 24px;
+      }
+      th, td {
+        border: 1px solid #d1d5db;
+        padding: 8px 12px;
+        text-align: left;
+      }
+      th {
+        background: #e5e7eb;
+      }
+      .note {
+        margin-top: 18px;
+        font-size: 1rem;
+      }
+      .winner {
+        font-weight: bold;
+        color: #0f172a;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>D — Modeling &amp; Evaluation Summary</h1>
+
+    <h2>D1 Baselines</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>RMSE</th>
+          <th>MAE</th>
+          <th>R²</th>
+          <th>Training time (s)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Mean baseline</td><td>1.4022</td><td>1.0973</td><td>-0.0006</td><td>0.021</td></tr>
+        <tr><td>Linear regression</td><td>0.8921</td><td>0.6817</td><td>0.5950</td><td>0.025</td></tr>
+        <tr><td>Random forest</td><td>0.5377</td><td>0.3899</td><td>0.8529</td><td>36.700</td></tr>
+      </tbody>
+    </table>
+    <p class="note">The mean baseline is worse than every learned model, and linear regression already captures much of the signal. The random forest wins on the same held-out validation split.</p>
+
+    <h2>D2 Model comparison</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>RMSE</th>
+          <th>MAE</th>
+          <th>R²</th>
+          <th>Training time (s)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Mean baseline</td><td>1.4022</td><td>1.0973</td><td>-0.0006</td><td>0.021</td></tr>
+        <tr><td>Linear regression</td><td>0.8921</td><td>0.6817</td><td>0.5950</td><td>0.025</td></tr>
+        <tr><td>Random forest</td><td>0.5377</td><td>0.3899</td><td>0.8529</td><td>36.700</td></tr>
+        <tr><td>Gradient boosting</td><td>0.6340</td><td>0.4625</td><td>0.7954</td><td>3.048</td></tr>
+        <tr><td>Extra trees</td><td>0.5539</td><td>0.4040</td><td>0.8439</td><td>12.856</td></tr>
+      </tbody>
+    </table>
+    <p class="winner">Winner: Random forest with RMSE = 0.5377, MAE = 0.3899, R² = 0.8529, and training time = 36.700 s.</p>
+    <p class="note">The random forest is selected because it captures non-linear crop-weather interactions without overfitting as badly as the simpler tree ensemble alternatives, while also having a strong balance of accuracy and training time.</p>
+
+    <h2>D3 Cross-validation</h2>
+    <ul>
+      <li>Random forest: mean RMSE = 0.5233 ± 0.0083</li>
+      <li>Gradient boosting: mean RMSE = 0.6368 ± 0.0061</li>
+    </ul>
+
+    <h2>D4 Out-of-time check</h2>
+    <p>The 2024 holdout test produced RMSE = 0.5299, MAE = 0.3866, and R² = 0.8656. This is close to the random-split score, which indicates the model generalizes reasonably well over time.</p>
+
+    <h2>D5 Weather ablation</h2>
+    <table>
+      <thead>
+        <tr><th>Variant</th><th>RMSE</th><th>MAE</th><th>R²</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Weather-aware</td><td>0.5377</td><td>0.3899</td><td>0.8529</td></tr>
+        <tr><td>No-weather ablation</td><td>0.5918</td><td>0.4356</td><td>0.8218</td></tr>
+      </tbody>
+    </table>
+
+    <h2>D6 Tuning</h2>
+    <p>Randomized search on the random forest selected the best configuration with RMSE = 0.5435 and parameters: {'model__n_estimators': 500, 'model__min_samples_split': 2, 'model__min_samples_leaf': 1, 'model__max_features': None, 'model__max_depth': None}.</p>
+
+    <h2>D7 Error analysis</h2>
+    <p>The principal pattern is that high-altitude and unusually hot plots are harder to predict, likely because climate extremes push the crop response outside the common range captured by the training data.</p>
+
+    <h2>D8 Response to findings</h2>
+    <p>The model was tuned on the training data and the residual analysis was used to prioritize weather features and crop-specific interactions.</p>
+
+    <h2>D9 Plain-language metric</h2>
+    <p>The final random-forest model has RMSE = 0.5377 tons/ha and MAE = 0.3899 tons/ha. Relative to the mean yield of 2.77 tons/ha, this is roughly 19.4% RMSE and 14.1% MAE.</p>
+  </body>
+</html>

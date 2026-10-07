@@ -48,6 +48,7 @@ const formatFixed = (value: number | string | null | undefined, digits: number, 
 
 export default function Home() {
   const [activeNav, setActiveNav] = useState("Visualizations");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [form, setForm] = useState(defaultForm);
   const [result, setResult] = useState<null | {
     predicted_yield_tons_per_ha: number;
@@ -191,6 +192,11 @@ export default function Home() {
 
   const regionValues = [4.9, 4.2, 3.8, 3.5, 2.9];
   const isPredictionView = activeNav === "Dashboard" || activeNav === "Prediction";
+
+  const handleNavigation = (item: string) => {
+    setActiveNav(item);
+    setIsSidebarOpen(false);
+  };
 
   const renderSectionContent = () => {
     switch (activeNav) {
@@ -566,18 +572,34 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#edf3f5] text-slate-900">
       <div className="flex h-screen overflow-hidden">
-        <aside className="flex w-[250px] flex-col bg-[#071d33] text-white">
-          <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-xl shadow-lg shadow-emerald-900/30">
-              🌾
+        <div
+          className={`fixed inset-0 z-40 bg-slate-950/50 transition-opacity duration-200 md:hidden ${isSidebarOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+          onClick={() => setIsSidebarOpen(false)}
+          aria-hidden={!isSidebarOpen}
+        />
+
+        <aside className={`fixed inset-y-0 left-0 z-50 flex w-[250px] -translate-x-full flex-col bg-[#071d33] text-white transition-transform duration-200 md:static md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : ""}`}>
+          <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-xl shadow-lg shadow-emerald-900/30">
+                🌾
+              </div>
+              <div className="leading-tight">
+                <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-200/90">QIYAS HACKATHON</div>
+                <div className="mt-1 text-[14px] font-semibold">Crop Yield Predictor</div>
+              </div>
             </div>
-            <div className="leading-tight">
-              <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-200/90">QIYAS HACKATHON</div>
-              <div className="mt-1 text-[14px] font-semibold">Crop Yield Predictor</div>
-            </div>
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(false)}
+              className="rounded-lg p-2 text-2xl text-slate-200 md:hidden"
+              aria-label="Close navigation"
+            >
+              ×
+            </button>
           </div>
 
-          <nav className="mt-6 flex-1 space-y-1 px-2">
+          <nav className="mt-6 flex-1 space-y-1 overflow-y-auto px-2">
             {navItems.map((item, index) => {
               const active = item === activeNav;
               const icons = ["🏠", "📊", "🧭", "📉", "🧠", "ℹ️"];
@@ -585,7 +607,7 @@ export default function Home() {
                 <button
                   key={item}
                   type="button"
-                  onClick={() => setActiveNav(item)}
+                  onClick={() => handleNavigation(item)}
                   className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-[15px] transition ${
                     active ? "bg-[#1eae8d] font-semibold text-white shadow-sm" : "text-slate-200 hover:bg-white/5"
                   }`}
@@ -606,13 +628,21 @@ export default function Home() {
         </aside>
 
         <main className="flex-1 overflow-auto bg-[#edf3f5]">
-          <header className="flex items-center justify-between border-b border-slate-200 bg-[#edf3f5] px-6 py-4">
-            <div className="flex items-center gap-4">
-              <div className="text-[14px] font-medium text-slate-900">Crop Yield Predictor</div>
+          <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-[#edf3f5]/95 px-4 py-3 backdrop-blur sm:px-6">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsSidebarOpen(true)}
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-xl shadow-sm md:hidden"
+                aria-label="Open navigation"
+              >
+                ☰
+              </button>
+              <div className="text-sm font-semibold text-slate-900 sm:text-[14px]">Crop Yield Predictor</div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm sm:flex">
                 <span className="text-base">📅</span>
                 Qiyas Hackathon • Oct 5, 2026
               </div>
@@ -622,7 +652,7 @@ export default function Home() {
             </div>
           </header>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {activeNav === "Dashboard" || activeNav === "Prediction" ? (
               <>
                 <div className="grid gap-4 md:grid-cols-4">

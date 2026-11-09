@@ -195,6 +195,19 @@ def _region_crop_benchmark(region: str, crop_type: str) -> Optional[float]:
         return None
 
 
+@app.get("/")
+def root() -> Dict[str, Any]:
+    return {
+        "message": "Ethiopian Crop Yield Prediction API",
+        "health": "/health",
+        "docs": "/docs",
+        "endpoints": {
+            "data_explorer": "/data-explorer",
+            "predict": "/predict",
+        },
+    }
+
+
 @app.get("/health")
 def health() -> Dict[str, str]:
     return {"status": "ok"}

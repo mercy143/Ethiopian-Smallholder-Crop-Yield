@@ -882,10 +882,10 @@ export default function Home() {
                       <span>📈</span>
                       Yield vs. Weather
                     </div>
-                    <div className="flex h-36 items-end gap-3 pt-4">
+                    <div className="flex h-28 items-end gap-3 pt-2">
                       {chartBars.map((bar) => (
-                        <div key={bar.label} className="flex flex-1 flex-col items-center justify-end gap-2">
-                          <div className={`${bar.color} w-full rounded-t-xl`} style={{ height: `${bar.value * 40}px` }} />
+                        <div key={bar.label} className="flex flex-1 flex-col items-center justify-end gap-1">
+                          <div className={`${bar.color} w-full rounded-t-xl`} style={{ height: `${bar.value * 16}px` }} />
                           <span className="text-[11px] text-slate-500">{bar.label}</span>
                         </div>
                       ))}
@@ -897,10 +897,10 @@ export default function Home() {
                       <span>📊</span>
                       Regional Yield Comparison
                     </div>
-                    <div className="flex h-36 items-end gap-2 pt-4">
+                    <div className="flex h-28 items-end gap-2 pt-2">
                       {regionValues.map((value, index) => (
-                        <div key={index} className="flex flex-1 flex-col items-center justify-end gap-2">
-                          <div className="w-full rounded-t-xl bg-[#46c3ad]" style={{ height: `${value * 42}px` }} />
+                        <div key={index} className="flex flex-1 flex-col items-center justify-end gap-1">
+                          <div className="w-full rounded-t-xl bg-[#46c3ad]" style={{ height: `${value * 16}px` }} />
                           <span className="text-[10px] text-slate-500">{["Oromia", "Amhara", "SNNPR", "Tigray", "Somali"][index]}</span>
                         </div>
                       ))}

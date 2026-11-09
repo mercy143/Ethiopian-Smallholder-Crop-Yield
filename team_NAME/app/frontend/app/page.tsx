@@ -854,17 +854,17 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                        <div className="mb-3 text-sm font-medium text-slate-700">Yield comparison</div>
+                      <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                        <div className="mb-2 text-sm font-medium text-slate-700">Yield comparison</div>
                         {result ? (
-                          <div className="flex items-end gap-3">
-                            <div className="flex flex-1 flex-col items-center justify-end">
-                              <div className="w-full rounded-t-xl bg-[#27d4b5]" style={{ height: `${Math.max(result.predicted_yield_tons_per_ha * 20, 30)}px` }} />
-                              <div className="mt-2 text-[10px] text-slate-600">Prediction</div>
+                          <div className="flex h-20 items-end gap-3">
+                            <div className="flex h-full flex-1 flex-col items-center justify-end">
+                              <div className="w-full max-w-40 rounded-t-xl bg-[#27d4b5]" style={{ height: `${Math.max(result.predicted_yield_tons_per_ha * 10, 20)}px` }} />
+                              <div className="mt-1 text-[10px] text-slate-600">Prediction</div>
                             </div>
-                            <div className="flex flex-1 flex-col items-center justify-end">
-                              <div className="w-full rounded-t-xl bg-[#4bb7ff]" style={{ height: `${Math.max((result.benchmark_yield_tons_per_ha ?? 4.2) * 18, 30)}px` }} />
-                              <div className="mt-2 text-[10px] text-slate-600">Regional avg</div>
+                            <div className="flex h-full flex-1 flex-col items-center justify-end">
+                              <div className="w-full max-w-40 rounded-t-xl bg-[#4bb7ff]" style={{ height: `${Math.max((result.benchmark_yield_tons_per_ha ?? 4.2) * 9, 20)}px` }} />
+                              <div className="mt-1 text-[10px] text-slate-600">Regional avg</div>
                             </div>
                           </div>
                         ) : (

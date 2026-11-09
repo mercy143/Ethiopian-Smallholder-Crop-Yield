@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List, Optional, Tuple
 
 import joblib
 import numpy as np
@@ -55,26 +55,39 @@ class PredictionInput(BaseModel):
     distance_to_market_km: float
 
 
-MODEL_CACHE: dict[str, Any] = {}
-for model_name, filename in MODEL_FILE_MAP.items():
-    model_path = ROOT / "models" / filename
-    if model_path.exists():
-        MODEL_CACHE[model_name] = joblib.load(model_path)
-if "Random Forest" not in MODEL_CACHE and MODEL_PATH.exists():
-    MODEL_CACHE["Random Forest"] = joblib.load(MODEL_PATH)
+MODEL_CACHE: Dict[str, Any] = {}
 
 
-def _resolve_model(model_name: str | None) -> tuple[Any, str]:
+def _load_model(model_name: str) -> Any:
+    key = MODEL_ALIASES.get(model_name.lower(), model_name)
+    if key in MODEL_CACHE:
+        return MODEL_CACHE[key]
+
+    model_path = ROOT / "models" / MODEL_FILE_MAP.get(key, "final_model.joblib")
+    if not model_path.exists() and key == "Random Forest" and MODEL_PATH.exists():
+        model_path = MODEL_PATH
+    if not model_path.exists():
+        raise ValueError(f"Model '{model_name}' is not available")
+
+    MODEL_CACHE[key] = joblib.load(model_path)
+    return MODEL_CACHE[key]
+
+
+def _resolve_model(model_name: Optional[str]) -> Tuple[Any, str]:
     selected_model = (model_name or "Random Forest").strip()
     key = MODEL_ALIASES.get(selected_model.lower(), selected_model)
-    if key in MODEL_CACHE:
-        return MODEL_CACHE[key], key
-    if "Random Forest" in MODEL_CACHE:
-        return MODEL_CACHE["Random Forest"], "Random Forest"
-    raise ValueError(f"Model '{selected_model}' is not available")
+    try:
+        return _load_model(key), key
+    except ValueError:
+        if "Random Forest" not in MODEL_CACHE:
+            try:
+                return _load_model("Random Forest"), "Random Forest"
+            except ValueError:
+                pass
+        raise ValueError(f"Model '{selected_model}' is not available")
 
 
-def _standardize_label(value: str, aliases: dict[str, str]) -> str:
+def _standardize_label(value: str, aliases: Dict[str, str]) -> str:
     token = str(value).strip().lower()
     return aliases.get(token, token.title())
 
@@ -97,7 +110,7 @@ def _load_prices() -> pd.DataFrame:
     return df
 
 
-def _season_months(planting_month: str) -> list[str]:
+def _season_months(planting_month: str) -> List[str]:
     month_num = MONTH_TO_NUM.get(planting_month.title(), 1)
     months = []
     for i in range(4):
@@ -106,7 +119,7 @@ def _season_months(planting_month: str) -> list[str]:
     return months
 
 
-def _region_weather(region: str, survey_year: int, planting_month: str, weather_df: pd.DataFrame) -> dict[str, float]:
+def _region_weather(region: str, survey_year: int, planting_month: str, weather_df: pd.DataFrame) -> Dict[str, float]:
     season = _season_months(planting_month)
     season_rows = weather_df[(weather_df["region"] == region) & (weather_df["year"] == survey_year) & (weather_df["month"].isin(season))]
     if season_rows.empty:
@@ -125,7 +138,7 @@ def _region_weather(region: str, survey_year: int, planting_month: str, weather_
     }
 
 
-def _prepare_feature_row(payload: PredictionInput) -> dict[str, Any]:
+def _prepare_feature_row(payload: PredictionInput) -> Dict[str, Any]:
     region = _standardize_label(payload.region, {"oromia": "Oromia", "oro": "Oromia", "amhara": "Amhara", "amh": "Amhara", "snnpr": "SNNPR", "snnp": "SNNPR", "tigray": "Tigray", "tig": "Tigray", "somali": "Somali", "som": "Somali"})
     crop = str(payload.crop_type).strip().lower()
     weather_df = _load_weather()
@@ -168,7 +181,7 @@ def _prepare_feature_row(payload: PredictionInput) -> dict[str, Any]:
     return feature_row
 
 
-def _region_crop_benchmark(region: str, crop_type: str) -> float | None:
+def _region_crop_benchmark(region: str, crop_type: str) -> Optional[float]:
     if not PROCESSED_TRAIN_PATH.exists():
         return None
 
@@ -183,12 +196,12 @@ def _region_crop_benchmark(region: str, crop_type: str) -> float | None:
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
+def health() -> Dict[str, str]:
     return {"status": "ok"}
 
 
 @app.get("/data-explorer")
-def data_explorer() -> dict[str, Any]:
+def data_explorer() -> Dict[str, Any]:
     csv_path = ROOT / "data" / "raw" / "crop_yield_train.csv"
     if not csv_path.exists():
         return {"total_rows": 0, "regions": [], "crops": [], "sample_rows": []}
@@ -213,7 +226,7 @@ def data_explorer() -> dict[str, Any]:
 
 
 @app.post("/predict")
-def predict(payload: PredictionInput) -> dict[str, Any]:
+def predict(payload: PredictionInput) -> Dict[str, Any]:
     feature_row = _prepare_feature_row(payload)
     df = pd.DataFrame([feature_row])
     expected = [

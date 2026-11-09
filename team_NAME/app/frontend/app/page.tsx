@@ -65,7 +65,7 @@ export default function Home() {
   const [dataExplorerRows, setDataExplorerRows] = useState<Array<{ region: string; crop_type: string; survey_year: number; yield_tons_per_ha: number | null; rainfall_mm_season: number | null }>>([]);
   const [dataExplorerStats, setDataExplorerStats] = useState({ total_rows: 0, regions: 0, crops: 0 });
 
-  const apiBaseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8001").replace(/\/$/, "");
+  const apiBaseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 
   useEffect(() => {
     if (activeNav !== "Data Explorer") return;

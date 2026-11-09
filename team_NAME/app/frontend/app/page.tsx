@@ -902,9 +902,17 @@ export default function Home() {
                     </div>
                     <div className="flex h-28 items-end gap-3 pt-2" aria-label="Monthly yield values in tons per hectare">
                       {chartBars.map((bar) => (
-                        <div key={bar.label} className="flex flex-1 flex-col items-center justify-end gap-1" aria-label={`${bar.label}: ${bar.value.toFixed(1)} tons per hectare`}>
+                        <div
+                          key={bar.label}
+                          className="group relative flex flex-1 flex-col items-center justify-end gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                          aria-label={`${bar.label}: ${bar.value.toFixed(1)} tons per hectare`}
+                          tabIndex={0}
+                        >
+                          <span role="tooltip" className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[11px] font-medium text-white opacity-0 shadow transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                            {bar.label}: {bar.value.toFixed(1)} t/ha
+                          </span>
                           <span className="text-[10px] font-semibold leading-none text-slate-700">{bar.value.toFixed(1)}</span>
-                          <div className={`${bar.color} w-full rounded-t-xl`} style={{ height: `${bar.value * 10}px` }} />
+                          <div title={`${bar.label}: ${bar.value.toFixed(1)} t/ha`} className={`${bar.color} w-full rounded-t-xl`} style={{ height: `${bar.value * 10}px` }} />
                           <span className="text-[11px] text-slate-500">{bar.label}</span>
                         </div>
                       ))}

@@ -825,8 +825,7 @@ export default function Home() {
                     </button>
                   </form>
 
-                  <div className="rounded-[28px] bg-[#0b223a] p-5 text-white shadow-xl relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(94,234,212,0.15),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(96,165,250,0.12),_transparent_30%)]" />
+                  <div className="relative overflow-hidden rounded-[28px] border border-amber-200 bg-white p-5 text-slate-800 shadow-xl">
                     <div className="relative z-10">
                       <div className="mb-4 flex items-center gap-2 text-[22px] font-bold">
                         <span>🌿</span>
@@ -834,42 +833,42 @@ export default function Home() {
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                        <div className="rounded-2xl bg-[#134d5d]/80 p-4 shadow-inner">
-                          <div className="text-[14px] text-slate-300">Predicted yield</div>
-                          <div className="mt-2 break-words text-[20px] font-bold leading-tight text-emerald-400 sm:text-[28px]">{result ? `${result.predicted_yield_tons_per_ha.toFixed(3)} t/ha` : "--"}</div>
+                        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                          <div className="text-[14px] text-slate-600">Predicted yield</div>
+                          <div className="mt-2 break-words text-[20px] font-bold leading-tight text-emerald-700 sm:text-[28px]">{result ? `${result.predicted_yield_tons_per_ha.toFixed(3)} t/ha` : "--"}</div>
                         </div>
-                        <div className="rounded-2xl bg-[#2d4b8c]/80 p-4 shadow-inner">
-                          <div className="text-[14px] text-slate-300">Estimated revenue</div>
-                          <div className="mt-2 break-words text-[20px] font-bold leading-tight text-amber-300 sm:text-[28px]">{result ? `${result.estimated_revenue_birr.toLocaleString()} birr` : "--"}</div>
+                        <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">
+                          <div className="text-[14px] text-slate-600">Estimated revenue</div>
+                          <div className="mt-2 break-words text-[20px] font-bold leading-tight text-amber-700 sm:text-[28px]">{result ? `${result.estimated_revenue_birr.toLocaleString()} birr` : "--"}</div>
                         </div>
                       </div>
 
                       <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3">
-                        <div className="rounded-2xl bg-[#123f5b]/80 p-4">
-                          <div className="text-sm text-slate-300">Season mean temp</div>
-                          <div className="mt-2 text-[21px] font-bold sm:text-[26px]">{result && seasonTemp !== null ? `${seasonTemp.toFixed(1)}°C` : "--"}</div>
+                        <div className="rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
+                          <div className="text-sm text-slate-600">Season mean temp</div>
+                          <div className="mt-2 text-[21px] font-bold text-yellow-700 sm:text-[26px]">{result && seasonTemp !== null ? `${seasonTemp.toFixed(1)}°C` : "--"}</div>
                         </div>
-                        <div className="rounded-2xl bg-[#123f5b]/80 p-4">
-                          <div className="text-sm text-slate-300">Total rain</div>
-                          <div className="mt-2 text-[21px] font-bold sm:text-[26px]">{result && rainfallFromApi !== null ? `${rainfallFromApi} mm` : "--"}</div>
+                        <div className="rounded-2xl border border-emerald-100 bg-white p-4">
+                          <div className="text-sm text-slate-600">Total rain</div>
+                          <div className="mt-2 text-[21px] font-bold text-emerald-700 sm:text-[26px]">{result && rainfallFromApi !== null ? `${rainfallFromApi} mm` : "--"}</div>
                         </div>
                       </div>
 
-                      <div className="mt-5 rounded-2xl bg-white/5 p-4">
-                        <div className="mb-3 text-sm font-medium text-slate-300">Yield comparison</div>
+                      <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="mb-3 text-sm font-medium text-slate-700">Yield comparison</div>
                         {result ? (
                           <div className="flex items-end gap-3">
                             <div className="flex flex-1 flex-col items-center justify-end">
                               <div className="w-full rounded-t-xl bg-[#27d4b5]" style={{ height: `${Math.max(result.predicted_yield_tons_per_ha * 20, 30)}px` }} />
-                              <div className="mt-2 text-[10px] text-slate-300">Prediction</div>
+                              <div className="mt-2 text-[10px] text-slate-600">Prediction</div>
                             </div>
                             <div className="flex flex-1 flex-col items-center justify-end">
                               <div className="w-full rounded-t-xl bg-[#4bb7ff]" style={{ height: `${Math.max((result.benchmark_yield_tons_per_ha ?? 4.2) * 18, 30)}px` }} />
-                              <div className="mt-2 text-[10px] text-slate-300">Regional avg</div>
+                              <div className="mt-2 text-[10px] text-slate-600">Regional avg</div>
                             </div>
                           </div>
                         ) : (
-                          <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-slate-500/60 text-sm text-slate-300">Submit the form to generate a prediction.</div>
+                          <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-slate-300 text-sm text-slate-500">Submit the form to generate a prediction.</div>
                         )}
                       </div>
                     </div>

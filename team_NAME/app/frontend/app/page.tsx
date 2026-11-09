@@ -221,6 +221,7 @@ export default function Home() {
   ];
 
   const regionValues = [4.9, 4.2, 3.8, 3.5, 2.9];
+  const regionLabels = ["Oromia", "Amhara", "SNNPR", "Tigray", "Somali"];
   const isPredictionView = activeNav === "Dashboard" || activeNav === "Prediction";
 
   const handleNavigation = (item: string) => {
@@ -899,10 +900,11 @@ export default function Home() {
                       <span>📈</span>
                       Yield vs. Weather
                     </div>
-                    <div className="flex h-28 items-end gap-3 pt-2">
+                    <div className="flex h-28 items-end gap-3 pt-2" aria-label="Monthly yield values in tons per hectare">
                       {chartBars.map((bar) => (
-                        <div key={bar.label} className="flex flex-1 flex-col items-center justify-end gap-1">
-                          <div className={`${bar.color} w-full rounded-t-xl`} style={{ height: `${bar.value * 16}px` }} />
+                        <div key={bar.label} className="flex flex-1 flex-col items-center justify-end gap-1" aria-label={`${bar.label}: ${bar.value.toFixed(1)} tons per hectare`}>
+                          <span className="text-[10px] font-semibold leading-none text-slate-700">{bar.value.toFixed(1)}</span>
+                          <div className={`${bar.color} w-full rounded-t-xl`} style={{ height: `${bar.value * 10}px` }} />
                           <span className="text-[11px] text-slate-500">{bar.label}</span>
                         </div>
                       ))}
@@ -914,11 +916,12 @@ export default function Home() {
                       <span>📊</span>
                       Regional Yield Comparison
                     </div>
-                    <div className="flex h-28 items-end gap-2 pt-2">
+                    <div className="flex h-28 items-end gap-2 pt-2" aria-label="Regional yield values in tons per hectare">
                       {regionValues.map((value, index) => (
-                        <div key={index} className="flex flex-1 flex-col items-center justify-end gap-1">
-                          <div className="w-full rounded-t-xl bg-[#46c3ad]" style={{ height: `${value * 16}px` }} />
-                          <span className="text-[10px] text-slate-500">{["Oromia", "Amhara", "SNNPR", "Tigray", "Somali"][index]}</span>
+                        <div key={regionLabels[index]} className="flex flex-1 flex-col items-center justify-end gap-1" aria-label={`${regionLabels[index]}: ${value.toFixed(1)} tons per hectare`}>
+                          <span className="text-[10px] font-semibold leading-none text-slate-700">{value.toFixed(1)}</span>
+                          <div className="w-full rounded-t-xl bg-[#46c3ad]" style={{ height: `${value * 10}px` }} />
+                          <span className="text-[10px] text-slate-500">{regionLabels[index]}</span>
                         </div>
                       ))}
                     </div>

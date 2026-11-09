@@ -190,15 +190,21 @@ export default function Home() {
   const rainfallFromApi = result ? Number((result.weather_summary.match(/total rain\s+(\d+)/i)?.[1] ?? "0")) : null;
   const seasonTemp = result ? Number((result.weather_summary.match(/mean temp\s+([0-9.]+)/i)?.[1] ?? "0")) : null;
 
-  const yieldDelta = result && result.benchmark_yield_tons_per_ha !== null && result.benchmark_yield_tons_per_ha !== undefined
-    ? ((result.predicted_yield_tons_per_ha - result.benchmark_yield_tons_per_ha) / result.benchmark_yield_tons_per_ha) * 100
+  const benchmarkYield = result?.benchmark_yield_tons_per_ha ?? null;
+  const yieldDelta = result && benchmarkYield !== null && benchmarkYield > 0
+    ? ((result.predicted_yield_tons_per_ha - benchmarkYield) / benchmarkYield) * 100
     : null;
 
   const hasWeatherData = result !== null && rainfallFromApi !== null && seasonTemp !== null;
-  const hasBenchmarkData = result !== null && result.benchmark_yield_tons_per_ha !== null && result.benchmark_yield_tons_per_ha !== undefined;
+  const hasBenchmarkData = benchmarkYield !== null;
+  const yieldComparisonMax = result
+    ? Math.max(result.predicted_yield_tons_per_ha, benchmarkYield ?? 0)
+    : 0;
+  const getYieldBarHeight = (value: number) =>
+    yieldComparisonMax > 0 ? `${(value / yieldComparisonMax) * 56}px` : "0px";
 
   const metricCards = [
-    { label: "Predicted Yield", value: result ? `${result.predicted_yield_tons_per_ha.toFixed(3)} t/ha` : "--", delta: result && hasBenchmarkData && yieldDelta !== null ? `↑ ${Math.abs(yieldDelta).toFixed(1)}% vs. regional avg` : "Awaiting prediction", tone: "emerald", icon: "🌾" },
+    { label: "Predicted Yield", value: result ? `${result.predicted_yield_tons_per_ha.toFixed(3)} t/ha` : "--", delta: result && hasBenchmarkData && yieldDelta !== null ? `${yieldDelta >= 0 ? "↑" : "↓"} ${Math.abs(yieldDelta).toFixed(1)}% vs. regional avg` : "Regional average unavailable", tone: "emerald", icon: "🌾" },
     { label: "Estimated Revenue", value: result ? `${result.estimated_revenue_birr.toLocaleString()} birr` : "--", delta: result ? `↑ ${(14.7).toFixed(1)}% vs. regional avg` : "Awaiting prediction", tone: "amber", icon: "💰" },
     { label: "Lookup Price", value: result ? `${result.price_birr_per_quintal.toLocaleString()} birr/quintal` : "--", delta: result && hasWeatherData ? `Season mean temp ${seasonTemp!.toFixed(1)}°C | Rain ${rainfallFromApi!} mm` : "Awaiting prediction", tone: "sky", icon: "📈" },
     { label: "Region Climate", value: result ? result.region : "--", delta: result ? "Good growing conditions" : "Awaiting prediction", tone: "gold", icon: "☀️" },
@@ -696,7 +702,7 @@ export default function Home() {
                         card.tone === "amber" ? "text-slate-900" :
                         card.tone === "sky" ? "text-slate-900" : "text-slate-900"
                       }`}>{card.value}</div>
-                      <div className={`mt-2 text-[11px] leading-snug sm:text-sm ${idx === 2 ? "text-slate-500" : "text-emerald-600"}`}>{card.delta}</div>
+                      <div className={`mt-2 text-[11px] leading-snug sm:text-sm ${idx === 0 && yieldDelta !== null && yieldDelta < 0 ? "text-amber-700" : idx === 2 ? "text-slate-500" : "text-emerald-600"}`}>{card.delta}</div>
                     </div>
                   ))}
                 </div>
@@ -857,13 +863,25 @@ export default function Home() {
                       <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
                         <div className="mb-2 text-sm font-medium text-slate-700">Yield comparison</div>
                         {result ? (
-                          <div className="flex h-20 items-end gap-3">
+                          <div className="flex h-[92px] items-end gap-3" aria-label="Yield comparison in tons per hectare">
                             <div className="flex h-full flex-1 flex-col items-center justify-end">
-                              <div className="w-full max-w-40 rounded-t-xl bg-[#27d4b5]" style={{ height: `${Math.max(result.predicted_yield_tons_per_ha * 10, 20)}px` }} />
+                              <span className="text-xs font-semibold text-emerald-700">{result.predicted_yield_tons_per_ha.toFixed(2)}</span>
+                              <div className="mt-1 flex h-14 w-full max-w-40 items-end">
+                                <div className="w-full rounded-t-xl bg-[#27d4b5]" style={{ height: getYieldBarHeight(result.predicted_yield_tons_per_ha) }} />
+                              </div>
                               <div className="mt-1 text-[10px] text-slate-600">Prediction</div>
                             </div>
                             <div className="flex h-full flex-1 flex-col items-center justify-end">
-                              <div className="w-full max-w-40 rounded-t-xl bg-[#4bb7ff]" style={{ height: `${Math.max((result.benchmark_yield_tons_per_ha ?? 4.2) * 9, 20)}px` }} />
+                              {hasBenchmarkData ? (
+                                <>
+                                  <span className="text-xs font-semibold text-sky-700">{benchmarkYield.toFixed(2)}</span>
+                                  <div className="mt-1 flex h-14 w-full max-w-40 items-end">
+                                    <div className="w-full rounded-t-xl bg-[#4bb7ff]" style={{ height: getYieldBarHeight(benchmarkYield) }} />
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="flex h-[72px] items-center text-xs text-slate-500">Unavailable</div>
+                              )}
                               <div className="mt-1 text-[10px] text-slate-600">Regional avg</div>
                             </div>
                           </div>

@@ -203,6 +203,7 @@ def root() -> Dict[str, Any]:
         "docs": "/docs",
         "endpoints": {
             "data_explorer": "/data-explorer",
+            "monthly_weather": "/monthly-weather?region=Oromia",
             "predict": "/predict",
         },
     }
@@ -236,6 +237,47 @@ def data_explorer() -> Dict[str, Any]:
         "sample_rows": sample[["region", "crop_type", "survey_year", "yield_tons_per_ha", "rainfall_mm_season"]].to_dict(orient="records"),
     }
     return summary
+
+
+@app.get("/monthly-weather")
+def monthly_weather(region: str = "Oromia") -> Dict[str, Any]:
+    region_aliases = {
+        "oromia": "Oromia",
+        "oro": "Oromia",
+        "amhara": "Amhara",
+        "amh": "Amhara",
+        "snnpr": "SNNPR",
+        "snnp": "SNNPR",
+        "tigray": "Tigray",
+        "tig": "Tigray",
+        "somali": "Somali",
+        "som": "Somali",
+    }
+    selected_region = _standardize_label(region, region_aliases)
+    weather_df = _load_weather()
+    region_weather = weather_df[weather_df["region"] == selected_region]
+    monthly_averages = region_weather.groupby("month")[["monthly_rainfall_mm", "avg_temp_c"]].mean()
+
+    return {
+        "region": selected_region,
+        "months": [
+            {
+                "month": month,
+                "monthly_rainfall_mm": (
+                    round(float(monthly_averages.loc[month, "monthly_rainfall_mm"]), 1)
+                    if month in monthly_averages.index
+                    and pd.notna(monthly_averages.loc[month, "monthly_rainfall_mm"])
+                    else None
+                ),
+                "avg_temp_c": (
+                    round(float(monthly_averages.loc[month, "avg_temp_c"]), 1)
+                    if month in monthly_averages.index and pd.notna(monthly_averages.loc[month, "avg_temp_c"])
+                    else None
+                ),
+            }
+            for month in MONTHS
+        ],
+    }
 
 
 @app.post("/predict")

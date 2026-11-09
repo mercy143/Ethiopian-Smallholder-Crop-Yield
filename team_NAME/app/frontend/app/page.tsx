@@ -64,6 +64,8 @@ export default function Home() {
   const [error, setError] = useState("");
   const [dataExplorerRows, setDataExplorerRows] = useState<Array<{ region: string; crop_type: string; survey_year: number; yield_tons_per_ha: number | null; rainfall_mm_season: number | null }>>([]);
   const [dataExplorerStats, setDataExplorerStats] = useState({ total_rows: 0, regions: 0, crops: 0 });
+  const [monthlyWeather, setMonthlyWeather] = useState<Array<{ month: string; monthly_rainfall_mm: number | null; avg_temp_c: number | null }>>([]);
+  const [monthlyWeatherError, setMonthlyWeatherError] = useState("");
 
   const apiBaseUrl = (process.env.NEXT_PUBLIC_API_URL || "https://ethiopian-smallholder-crop-yield.onrender.com").replace(/\/$/, "");
 
@@ -89,6 +91,30 @@ export default function Home() {
 
     fetchExplorerData();
   }, [activeNav, apiBaseUrl]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchMonthlyWeather = async () => {
+      setMonthlyWeatherError("");
+      try {
+        const response = await fetch(
+          `${apiBaseUrl}/monthly-weather?region=${encodeURIComponent(form.region)}`,
+          { signal: controller.signal },
+        );
+        if (!response.ok) throw new Error("Failed to load monthly weather");
+        const data = await response.json();
+        setMonthlyWeather(data.months ?? []);
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        setMonthlyWeather([]);
+        setMonthlyWeatherError(err instanceof Error ? err.message : "Failed to load monthly weather");
+      }
+    };
+
+    fetchMonthlyWeather();
+    return () => controller.abort();
+  }, [apiBaseUrl, form.region]);
 
   const fetchPrediction = async (payload: typeof defaultForm) => {
     const response = await fetch(`${apiBaseUrl}/predict`, {
@@ -213,13 +239,6 @@ export default function Home() {
   const fieldClass =
     "mt-1 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 sm:text-[14px]";
 
-  const chartBars = [
-    { label: "Mar", value: 4.4, color: "bg-[#3bb9a9]" },
-    { label: "Apr", value: 5.1, color: "bg-[#5ab2ff]" },
-    { label: "May", value: 4.7, color: "bg-[#ffb14d]" },
-    { label: "Jun", value: 4.9, color: "bg-[#48cfcb]" },
-  ];
-
   const regionValues = [4.9, 4.2, 3.8, 3.5, 2.9];
   const regionLabels = ["Oromia", "Amhara", "SNNPR", "Tigray", "Somali"];
   const isPredictionView = activeNav === "Dashboard" || activeNav === "Prediction";
@@ -228,6 +247,11 @@ export default function Home() {
     setActiveNav(item);
     setIsSidebarOpen(false);
   };
+
+  const maxMonthlyRainfall = Math.max(
+    1,
+    ...monthlyWeather.map((month) => month.monthly_rainfall_mm ?? 0),
+  );
 
   const renderSectionContent = () => {
     switch (activeNav) {
@@ -896,27 +920,43 @@ export default function Home() {
 
                 <div className="mt-6 grid gap-5 lg:grid-cols-[1.3fr_0.9fr_0.9fr]">
                   <div className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm">
-                    <div className="mb-4 flex items-center gap-2 text-[16px] font-semibold text-slate-800">
+                    <div className="mb-1 flex items-center gap-2 text-[16px] font-semibold text-slate-800">
                       <span>📈</span>
                       Yield vs. Weather
                     </div>
-                    <div className="flex h-28 items-end gap-3 pt-2" aria-label="Monthly yield values in tons per hectare">
-                      {chartBars.map((bar) => (
+                    <div className="mb-2 text-xs text-slate-500">
+                      {form.region} average rainfall by month (mm)
+                    </div>
+                    {monthlyWeatherError ? (
+                      <div role="alert" className="py-6 text-center text-sm text-red-600">{monthlyWeatherError}</div>
+                    ) : monthlyWeather.length === 0 ? (
+                      <div className="py-6 text-center text-sm text-slate-500">Loading monthly weather…</div>
+                    ) : (
+                    <div className="grid h-28 grid-cols-12 items-end gap-1 pt-2" aria-label={`Monthly rainfall values in millimeters for ${form.region}`}>
+                      {monthlyWeather.map((month) => {
+                        const rainfall = month.monthly_rainfall_mm;
+                        const temperature = month.avg_temp_c;
+                        const barHeight = rainfall === null ? 0 : (rainfall / maxMonthlyRainfall) * 56;
+                        const tooltip = `${month.month}: ${rainfall === null ? "rainfall unavailable" : `${rainfall.toFixed(1)} mm rainfall`}${temperature === null ? "" : `, ${temperature.toFixed(1)}°C average temperature`}`;
+
+                        return (
                         <div
-                          key={bar.label}
-                          className="group relative flex flex-1 flex-col items-center justify-end gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                          aria-label={`${bar.label}: ${bar.value.toFixed(1)} tons per hectare`}
+                          key={month.month}
+                          className="group relative flex min-w-0 flex-col items-center justify-end gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                          aria-label={tooltip}
                           tabIndex={0}
                         >
                           <span role="tooltip" className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[11px] font-medium text-white opacity-0 shadow transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-                            {bar.label}: {bar.value.toFixed(1)} t/ha
+                            {tooltip}
                           </span>
-                          <span className="text-[10px] font-semibold leading-none text-slate-700">{bar.value.toFixed(1)}</span>
-                          <div title={`${bar.label}: ${bar.value.toFixed(1)} t/ha`} className={`${bar.color} w-full rounded-t-xl`} style={{ height: `${bar.value * 10}px` }} />
-                          <span className="text-[11px] text-slate-500">{bar.label}</span>
+                          <span className="whitespace-nowrap text-[8px] font-semibold leading-none text-slate-700 sm:text-[10px]">{rainfall === null ? "—" : Math.round(rainfall)}</span>
+                          <div title={tooltip} className="w-full rounded-t-md bg-[#3bb9a9]" style={{ height: `${barHeight}px` }} />
+                          <span className="text-[8px] text-slate-500 sm:text-[10px]">{month.month}</span>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
+                    )}
                   </div>
 
                   <div className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm">

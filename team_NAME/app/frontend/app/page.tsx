@@ -47,7 +47,7 @@ const formatFixed = (value: number | string | null | undefined, digits: number, 
 };
 
 export default function Home() {
-  const [activeNav, setActiveNav] = useState("Visualizations");
+  const [activeNav, setActiveNav] = useState("Prediction");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [form, setForm] = useState(defaultForm);
   const [result, setResult] = useState<null | {
@@ -117,6 +117,30 @@ export default function Home() {
     return response.json();
   };
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDefaultPrediction = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await fetchPrediction(defaultForm);
+        if (!cancelled) setResult(data);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Something went wrong");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadDefaultPrediction();
+    return () => {
+      cancelled = true;
+    };
+  }, [apiBaseUrl]);
+
   const handleChange = (key: string, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
@@ -181,7 +205,7 @@ export default function Home() {
   ];
 
   const fieldClass =
-    "mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-[14px] text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200";
+    "mt-1 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 sm:text-[14px]";
 
   const chartBars = [
     { label: "Mar", value: 4.4, color: "bg-[#3bb9a9]" },
@@ -571,7 +595,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#edf3f5] text-slate-900">
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex h-[100dvh] min-h-[100svh] overflow-hidden">
         <div
           className={`fixed inset-0 z-40 bg-slate-950/50 transition-opacity duration-200 md:hidden ${isSidebarOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
           onClick={() => setIsSidebarOpen(false)}
@@ -627,13 +651,13 @@ export default function Home() {
           </div>
         </aside>
 
-        <main className="flex-1 overflow-auto bg-[#edf3f5]">
+        <main className="min-w-0 flex-1 overflow-auto bg-[#edf3f5]">
           <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-[#edf3f5]/95 px-4 py-3 backdrop-blur sm:px-6">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setIsSidebarOpen(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-xl shadow-sm md:hidden"
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-xl shadow-sm md:hidden"
                 aria-label="Open navigation"
               >
                 ☰
@@ -652,33 +676,33 @@ export default function Home() {
             </div>
           </header>
 
-          <div className="p-4 sm:p-6">
+          <div className="p-3 sm:p-6">
             {activeNav === "Dashboard" || activeNav === "Prediction" ? (
               <>
-                <div className="grid gap-4 md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
                   {metricCards.map((card, idx) => (
-                    <div key={card.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm font-medium text-slate-600">{card.label}</div>
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                    <div key={card.label} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+                      <div className="flex items-center justify-between gap-1">
+                        <div className="text-xs font-medium text-slate-600 sm:text-sm">{card.label}</div>
+                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10 ${
                           card.tone === "emerald" ? "bg-emerald-100" :
                           card.tone === "amber" ? "bg-amber-100" :
                           card.tone === "sky" ? "bg-sky-100" : "bg-amber-100"
                         } text-xl`}>{card.icon}</div>
                       </div>
 
-                      <div className={`mt-4 text-[28px] font-bold ${
+                      <div className={`mt-3 break-words text-[20px] font-bold leading-tight sm:mt-4 sm:text-[28px] ${
                         card.tone === "emerald" ? "text-emerald-600" :
                         card.tone === "amber" ? "text-slate-900" :
                         card.tone === "sky" ? "text-slate-900" : "text-slate-900"
                       }`}>{card.value}</div>
-                      <div className={`mt-2 text-sm ${idx === 2 ? "text-slate-500" : "text-emerald-600"}`}>{card.delta}</div>
+                      <div className={`mt-2 text-[11px] leading-snug sm:text-sm ${idx === 2 ? "text-slate-500" : "text-emerald-600"}`}>{card.delta}</div>
                     </div>
                   ))}
                 </div>
 
                 <div className="mt-6 grid gap-6 xl:grid-cols-[1.08fr_1.2fr]">
-                  <form onSubmit={handleSubmit} className="rounded-[22px] border border-slate-200 bg-white p-5 shadow-sm">
+                  <form onSubmit={handleSubmit} className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
                     <div className="mb-4 flex items-center gap-2 text-[18px] font-semibold text-slate-800">
                       <span>🌱</span>
                       <span>Plot Information</span>
@@ -809,25 +833,25 @@ export default function Home() {
                         <span>Prediction Result</span>
                       </div>
 
-                      <div className="grid gap-3 md:grid-cols-2">
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
                         <div className="rounded-2xl bg-[#134d5d]/80 p-4 shadow-inner">
                           <div className="text-[14px] text-slate-300">Predicted yield</div>
-                          <div className="mt-2 text-[28px] font-bold text-emerald-400">{result ? `${result.predicted_yield_tons_per_ha.toFixed(3)} t/ha` : "--"}</div>
+                          <div className="mt-2 break-words text-[20px] font-bold leading-tight text-emerald-400 sm:text-[28px]">{result ? `${result.predicted_yield_tons_per_ha.toFixed(3)} t/ha` : "--"}</div>
                         </div>
                         <div className="rounded-2xl bg-[#2d4b8c]/80 p-4 shadow-inner">
                           <div className="text-[14px] text-slate-300">Estimated revenue</div>
-                          <div className="mt-2 text-[28px] font-bold text-amber-300">{result ? `${result.estimated_revenue_birr.toLocaleString()} birr` : "--"}</div>
+                          <div className="mt-2 break-words text-[20px] font-bold leading-tight text-amber-300 sm:text-[28px]">{result ? `${result.estimated_revenue_birr.toLocaleString()} birr` : "--"}</div>
                         </div>
                       </div>
 
-                      <div className="mt-4 grid gap-3 md:grid-cols-2">
+                      <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3">
                         <div className="rounded-2xl bg-[#123f5b]/80 p-4">
                           <div className="text-sm text-slate-300">Season mean temp</div>
-                          <div className="mt-2 text-[26px] font-bold">{result && seasonTemp !== null ? `${seasonTemp.toFixed(1)}°C` : "--"}</div>
+                          <div className="mt-2 text-[21px] font-bold sm:text-[26px]">{result && seasonTemp !== null ? `${seasonTemp.toFixed(1)}°C` : "--"}</div>
                         </div>
                         <div className="rounded-2xl bg-[#123f5b]/80 p-4">
                           <div className="text-sm text-slate-300">Total rain</div>
-                          <div className="mt-2 text-[26px] font-bold">{result && rainfallFromApi !== null ? `${rainfallFromApi} mm` : "--"}</div>
+                          <div className="mt-2 text-[21px] font-bold sm:text-[26px]">{result && rainfallFromApi !== null ? `${rainfallFromApi} mm` : "--"}</div>
                         </div>
                       </div>
 
